@@ -17,11 +17,11 @@ namespace Scenes.Simulating_Fluids.Scripts
         private ComputeBuffer m_ArgsBuffer;
         private bool m_NeedsUpdate;
         
-        private static readonly int PositionsID = Shader.PropertyToID("_Positions");
-        private static readonly int VelocitiesID = Shader.PropertyToID("_Velocities");
-        private static readonly int ScaleID = Shader.PropertyToID("_Scale");
-        private static readonly int SpeedID = Shader.PropertyToID("_MaxSpeed");
-        private static readonly int ColorMapID = Shader.PropertyToID("_ColorMap");
+        private static readonly int PositionsID = Shader.PropertyToID("u_positions");
+        private static readonly int VelocitiesID = Shader.PropertyToID("u_velocities");
+        private static readonly int ScaleID = Shader.PropertyToID("u_scale");
+        private static readonly int SpeedID = Shader.PropertyToID("u_max_speed");
+        private static readonly int ColorMapID = Shader.PropertyToID("u_color_map");
 
         public void Init(Simulation2D vSimulation2D)
         {

@@ -42,12 +42,12 @@ Shader "Volumetric Clouds/RaymarchV3"
             // #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Lighting.hlsl"
             #include "Assets/Scenes/Volumetric Clouds/HLSL/Raymarch.hlsl"
 
-            struct Attributes
+            struct attributes
             {
                 float3 positionOS: POSITION;
             };
 
-            struct Varyings
+            struct varyings
             {
                 float4 positionHCS: SV_POSITION;
                 float3 positionOS: TEXCOORD0;
@@ -71,15 +71,15 @@ Shader "Volumetric Clouds/RaymarchV3"
             Texture3D _VolumeTex;
             SamplerState sampler_VolumeTex;
 
-            Varyings vert(Attributes IN)
+            varyings vert(attributes IN)
             {
-                Varyings OUT;
+                varyings OUT;
                 OUT.positionOS = IN.positionOS;
                 OUT.positionHCS = TransformObjectToHClip(IN.positionOS);
                 return OUT;
             }
 
-            float4 frag(Varyings IN) : SV_Target
+            float4 frag(varyings IN) : SV_Target
             {
                 float3 cameraPosOS = TransformWorldToObject(GetCameraPositionWS());
                 float3 rayDirection = normalize(IN.positionOS - cameraPosOS);

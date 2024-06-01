@@ -26,51 +26,51 @@ Shader "Simulating Fluids/Particle2D"
 
             #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Core.hlsl"
             
-            struct Attributes
+            struct attributes
             {
-                float3 positionOS: POSITION;
+                float3 position_os: POSITION;
                 float2 uv: TEXCOORD0;
-                uint instanceID: SV_InstanceID;
+                uint instance_id: SV_InstanceID;
             };
 
-            struct Varyings
+            struct varyings
             {
-                float4 positionHCS: SV_POSITION;
+                float4 position_hcs: SV_POSITION;
                 float2 uv: TEXCOORD0;
                 float3 color: TEXCOORD1;
             };
 
             CBUFFER_START(UnityPerMaterial)
-                float _Scale;
-                float _MaxSpeed;
+                float u_scale;
+                float u_max_speed;
             CBUFFER_END
 
-            StructuredBuffer<float2> _Positions;
-			StructuredBuffer<float2> _Velocities;
+            StructuredBuffer<float2> u_positions;
+			StructuredBuffer<float2> u_velocities;
 
-            Texture2D _ColorMap;
+            Texture2D u_color_map;
 			SamplerState linear_clamp_sampler;
             
-            Varyings vert(Attributes IN)
+            varyings vert(const attributes IN)
             {
-                Varyings OUT;
-                float speed = length(_Velocities[IN.instanceID]);
-                float normalizedSpeed = saturate(speed / _MaxSpeed);
-                float3 centerWS = float3(_Positions[IN.instanceID], 0.0);
-                centerWS += TransformObjectToWorld(IN.positionOS * _Scale);
-                OUT.positionHCS = TransformWorldToHClip(centerWS);
+                varyings OUT;
+                const float speed = length(u_velocities[IN.instance_id]);
+                float normalized_speed = saturate(speed / u_max_speed);
+                float3 center_ws = float3(u_positions[IN.instance_id], 0.0);
+                center_ws += TransformObjectToWorld(IN.position_os * u_scale);
+                OUT.position_hcs = TransformWorldToHClip(center_ws);
                 OUT.uv = IN.uv;
-                OUT.color = _ColorMap.SampleLevel(linear_clamp_sampler, float2(normalizedSpeed, 0.5), 0);
+                OUT.color = u_color_map.SampleLevel(linear_clamp_sampler, float2(normalized_speed, 0.5), 0);
                 return OUT;
             }
 
-            float4 frag(Varyings IN) : SV_Target
+            float4 frag(varyings IN) : SV_Target
             {
-                float2 centerOffset = (IN.uv.xy - 0.5) * 2; // [-1,1]^2
-				float sqrDst = dot(centerOffset, centerOffset); // squared distance to origin
+                const float2 center_offset = (IN.uv.xy - 0.5) * 2; // [-1,1]^2
+                const float sqr_dst = dot(center_offset, center_offset); // squared distance to origin
                 // 玄妙：画一个圆
-                float delta = fwidth(sqrt(sqrDst));
-				float alpha = 1 - smoothstep(1 - delta, 1 + delta, sqrDst);
+                const float delta = fwidth(sqrt(sqr_dst));
+				float alpha = 1 - smoothstep(1 - delta, 1 + delta, sqr_dst);
 
 				float3 color = IN.color;
 				return float4(color, alpha);

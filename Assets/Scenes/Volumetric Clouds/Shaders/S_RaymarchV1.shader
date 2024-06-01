@@ -31,12 +31,12 @@ Shader "Volumetric Clouds/RaymarchV1"
             #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Core.hlsl"
             #include "Assets/Scenes/Volumetric Clouds/HLSL/Raymarch.hlsl"
 
-            struct Attributes
+            struct attributes
             {
                 float3 positionOS : POSITION;
             };
 
-            struct Varyings
+            struct varyings
             {
                 float4 positionHCS: SV_POSITION;
                 float3 positionOS: TEXCOORD0;
@@ -49,15 +49,15 @@ Shader "Volumetric Clouds/RaymarchV1"
                 float4 _Sphere;
             CBUFFER_END
 
-            Varyings vert(Attributes IN)
+            varyings vert(attributes IN)
             {
-                Varyings OUT;
+                varyings OUT;
                 OUT.positionHCS = TransformObjectToHClip(IN.positionOS);
                 OUT.positionOS = IN.positionOS;
                 return OUT;
             }
 
-            float4 frag(Varyings IN) : SV_Target
+            float4 frag(varyings IN) : SV_Target
             {
                 const float3 rayOrigin = TransformWorldToObject(GetCameraPositionWS());
                 float3 rayDirection = normalize(IN.positionOS - rayOrigin);

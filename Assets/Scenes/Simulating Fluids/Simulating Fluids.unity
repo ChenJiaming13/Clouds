@@ -389,7 +389,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   particleCount: 4032
   initialVelocity: {x: 0, y: 0}
-  spawnCenter: {x: 0, y: 0}
+  spawnCenter: {x: 3.35, y: 0.51}
   spawnSize: {x: 7, y: 7}
   jitterStr: 0.025
   showSpawnBoundsGizmos: 1
@@ -466,5 +466,13 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: a45ab45ba1734849b4302c3a4cf17458, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  enableSimulation: 0
   particleSpawner: {fileID: 2041237281}
   particleDisplay2D: {fileID: 2041237283}
+  computeShader: {fileID: 7200000, guid: efea490e9a179ef4789568eca696de59, type: 3}
+  gravity: 10
+  collisionDamping: 0.95
+  boundsSize: {x: 17.1, y: 9.3}
+  smoothingRadius: 0.35
+  targetDensity: 55
+  pressureMultiplier: 0.05
