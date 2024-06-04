@@ -25,6 +25,18 @@ Shader "Simulating Fluids/Particle2D"
             #pragma target 4.5 // https://docs.unity.cn/cn/2021.3/ScriptReference/ComputeBuffer.html
 
             #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Core.hlsl"
+
+            // ----------------------------------------------------------------------------
+            // todo: not compatible cbuffer unity per material
+            float u_scale;
+            float u_max_speed;
+
+            StructuredBuffer<float2> u_positions;
+			StructuredBuffer<float2> u_velocities;
+
+            Texture2D u_color_map;
+			SamplerState linear_clamp_sampler;
+            // ----------------------------------------------------------------------------
             
             struct attributes
             {
@@ -39,17 +51,6 @@ Shader "Simulating Fluids/Particle2D"
                 float2 uv: TEXCOORD0;
                 float3 color: TEXCOORD1;
             };
-
-            CBUFFER_START(UnityPerMaterial)
-                float u_scale;
-                float u_max_speed;
-            CBUFFER_END
-
-            StructuredBuffer<float2> u_positions;
-			StructuredBuffer<float2> u_velocities;
-
-            Texture2D u_color_map;
-			SamplerState linear_clamp_sampler;
             
             varyings vert(const attributes IN)
             {
@@ -60,7 +61,7 @@ Shader "Simulating Fluids/Particle2D"
                 center_ws += TransformObjectToWorld(IN.position_os * u_scale);
                 OUT.position_hcs = TransformWorldToHClip(center_ws);
                 OUT.uv = IN.uv;
-                OUT.color = u_color_map.SampleLevel(linear_clamp_sampler, float2(normalized_speed, 0.5), 0);
+                OUT.color = u_color_map.SampleLevel(linear_clamp_sampler, float2(normalized_speed, 0.5), 0).xyz;
                 return OUT;
             }
 

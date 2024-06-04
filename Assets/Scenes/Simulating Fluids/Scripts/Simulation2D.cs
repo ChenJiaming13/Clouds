@@ -6,21 +6,15 @@ namespace Scenes.Simulating_Fluids.Scripts
     public class Simulation2D : MonoBehaviour
     {
         public bool enableSimulation;
+        public Settings2D settings;
         public ComputeBuffer positionBuffer { get; private set; }
         public ComputeBuffer velocityBuffer { get; private set; }
-        private ComputeBuffer densityBuffer { get; set; }
+        public ComputeBuffer densityBuffer { get; private set; }
         public ParticleSpawner particleSpawner;
-        public ParticleDisplay2D particleDisplay2D;
+        public DisplayParticle2D displayParticle2D;
+        public DisplayDensity2D displayDensity2D;
         public ComputeShader computeShader;
-        public float gravity = 10.0f;
-        public float collisionDamping = 0.9f;
-        public Vector2 boundsSize;
-        public float smoothingRadius;
-        public float targetDensity;
-        public float pressureMultiplier;
         
-        private int m_NumParticles; 
-
         private static int _kernelIdxCalcDensity;
         private static int _kernelIdxApplyForce;
         private static int _kernelIdxUpdatePosition;
@@ -39,11 +33,10 @@ namespace Scenes.Simulating_Fluids.Scripts
         private void Start()
         {
             // init compute buffer
-            var spawnData = particleSpawner.GenerateData();
-            m_NumParticles = spawnData.Positions.Length;
-            positionBuffer = CreateStructuredBuffer<float2>(m_NumParticles);
-            velocityBuffer = CreateStructuredBuffer<float2>(m_NumParticles);
-            densityBuffer = CreateStructuredBuffer<float>(m_NumParticles);
+            var spawnData = particleSpawner.GenerateData(settings.numParticles);
+            positionBuffer = CreateStructuredBuffer<float2>(settings.numParticles);
+            velocityBuffer = CreateStructuredBuffer<float2>(settings.numParticles);
+            densityBuffer = CreateStructuredBuffer<float>(settings.numParticles);
             positionBuffer.SetData(spawnData.Positions);
             velocityBuffer.SetData(spawnData.Velocities);
 
@@ -61,31 +54,32 @@ namespace Scenes.Simulating_Fluids.Scripts
                 _kernelIdxCalcDensity, _kernelIdxApplyForce, _kernelIdxUpdatePosition);
             
             // set uniform
-            computeShader.SetInt(NumParticlesID, m_NumParticles);
+            computeShader.SetInt(NumParticlesID, settings.numParticles);
             
             // Debug.Log(computeShader.IsSupported(_kernelIdxCalcDensity));
             // Debug.Log(computeShader.IsSupported(_kernelIdxApplyForce));
             // Debug.Log(computeShader.IsSupported(_kernelIdxUpdatePosition));
             
-            particleDisplay2D.Init(this);
+            displayParticle2D.Init(this);
+            displayDensity2D.Init(this);
         }
 
         private void Update()
         {
-            if (Input.GetKeyDown(KeyCode.Space)) enableSimulation = !enableSimulation;
+            if (Input.GetMouseButtonDown(0)) enableSimulation = !enableSimulation;
             if (enableSimulation) UpdateSim();
         }
 
         private void UpdateSim()
         {
             // set uniform
-            computeShader.SetFloat(GravityID, gravity);
-            computeShader.SetFloat(DeltaTimeID, Time.deltaTime);
-            computeShader.SetVector(BoundsSizeID, boundsSize);
-            computeShader.SetFloat(CollisionDampingID, collisionDamping);
-            computeShader.SetFloat(SmoothingRadiusID, smoothingRadius);
-            computeShader.SetFloat(TargetDensityID, targetDensity);
-            computeShader.SetFloat(PressureMultiplierID, pressureMultiplier);
+            computeShader.SetFloat(GravityID, settings.gravity);
+            computeShader.SetFloat(DeltaTimeID, Time.deltaTime * settings.timeScale);
+            computeShader.SetVector(BoundsSizeID, settings.boundsSize);
+            computeShader.SetFloat(CollisionDampingID, settings.collisionDamping);
+            computeShader.SetFloat(SmoothingRadiusID, settings.smoothingRadius);
+            computeShader.SetFloat(TargetDensityID, settings.targetDensity);
+            computeShader.SetFloat(PressureMultiplierID, settings.pressureMultiplier);
             Dispatch(_kernelIdxCalcDensity);
             Dispatch(_kernelIdxApplyForce);
             Dispatch(_kernelIdxUpdatePosition);
@@ -102,7 +96,7 @@ namespace Scenes.Simulating_Fluids.Scripts
         private void Dispatch(int vKernelIdx)
         {
             computeShader.GetKernelThreadGroupSizes(vKernelIdx, out var x, out _, out _);
-            var numGroupsX = Mathf.CeilToInt(m_NumParticles / (float)x);
+            var numGroupsX = Mathf.CeilToInt(settings.numParticles / (float)x);
             // var numGroupsY = Mathf.CeilToInt(m_NumParticles / (float)y);
             const int numGroupsY = 1;
             // var numGroupsZ = Mathf.CeilToInt(m_NumParticles / (float)z);
@@ -127,7 +121,7 @@ namespace Scenes.Simulating_Fluids.Scripts
         private void OnDrawGizmos()
         {
             Gizmos.color = new Color(0, 1, 0, 0.4f);
-            Gizmos.DrawWireCube(Vector2.zero, boundsSize);
+            Gizmos.DrawWireCube(Vector2.zero, settings.boundsSize);
         }
     }
 }

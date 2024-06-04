@@ -5,30 +5,29 @@ namespace Scenes.Simulating_Fluids.Scripts
 {
     public class ParticleSpawner : MonoBehaviour
     {
-        public int particleCount;
         public Vector2 initialVelocity;
         public Vector2 spawnCenter;
         public Vector2 spawnSize;
         public float jitterStr;
         public bool showSpawnBoundsGizmos;
 
-        public ParticleSpawnData GenerateData()
+        public ParticleSpawnData GenerateData(int vParticleCount)
         {
-            var data = new ParticleSpawnData(particleCount);
+            var data = new ParticleSpawnData(vParticleCount);
             var random = new Unity.Mathematics.Random(42);
 
             var numX = Mathf.CeilToInt(
-                Mathf.Sqrt(spawnSize.x / spawnSize.y * particleCount + (spawnSize.x - spawnSize.y) *
+                Mathf.Sqrt(spawnSize.x / spawnSize.y * vParticleCount + (spawnSize.x - spawnSize.y) *
                     (spawnSize.x - spawnSize.y) / (4 * spawnSize.y * spawnSize.y)) -
                 (spawnSize.x - spawnSize.y) / (2 * spawnSize.y));
-            var numY = Mathf.CeilToInt(particleCount / (float)numX);
+            var numY = Mathf.CeilToInt(vParticleCount / (float)numX);
             var i = 0;
 
             for (var y = 0; y < numY; y++)
             {
                 for (var x = 0; x < numX; x++)
                 {
-                    if (i >= particleCount) break;
+                    if (i >= vParticleCount) break;
 
                     var tx = numX <= 1 ? 0.5f : x / (numX - 1f);
                     var ty = numY <= 1 ? 0.5f : y / (numY - 1f);

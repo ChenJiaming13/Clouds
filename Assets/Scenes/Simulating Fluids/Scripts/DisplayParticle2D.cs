@@ -2,15 +2,15 @@ using UnityEngine;
 
 namespace Scenes.Simulating_Fluids.Scripts
 {
-    public class ParticleDisplay2D : MonoBehaviour
+    public class DisplayParticle2D : MonoBehaviour
     {
         public Mesh mesh;
         public Shader shader;
-        public float particleScale;
-        public float maxSpeed;
         public Gradient colorGradient;
         public int gradientResolution;
-        
+        public float particleScale;
+
+        private Settings2D m_Settings;
         private Texture2D m_ColorMap;
         private Material m_Material;
         private Bounds m_Bounds;
@@ -20,15 +20,16 @@ namespace Scenes.Simulating_Fluids.Scripts
         private static readonly int PositionsID = Shader.PropertyToID("u_positions");
         private static readonly int VelocitiesID = Shader.PropertyToID("u_velocities");
         private static readonly int ScaleID = Shader.PropertyToID("u_scale");
-        private static readonly int SpeedID = Shader.PropertyToID("u_max_speed");
+        private static readonly int MaxSpeedID = Shader.PropertyToID("u_max_speed");
         private static readonly int ColorMapID = Shader.PropertyToID("u_color_map");
 
         public void Init(Simulation2D vSimulation2D)
         {
+            m_Settings = vSimulation2D.settings;
             m_Material = new Material(shader);
             m_Material.SetBuffer(PositionsID, vSimulation2D.positionBuffer);
             m_Material.SetBuffer(VelocitiesID, vSimulation2D.velocityBuffer);
-            m_ArgsBuffer = CreateArgsBuffer(mesh, vSimulation2D.positionBuffer.count);
+            m_ArgsBuffer = CreateArgsBuffer(mesh, vSimulation2D.settings.numParticles);
             m_Bounds = new Bounds(Vector3.zero, Vector3.one * 10000);
         }
 
@@ -40,8 +41,8 @@ namespace Scenes.Simulating_Fluids.Scripts
                 TransformGradientToTexture2D(ref m_ColorMap, gradientResolution, colorGradient);
                 m_Material.SetTexture(ColorMapID, m_ColorMap);
                 m_Material.SetFloat(ScaleID, particleScale);
-                m_Material.SetFloat(SpeedID, maxSpeed);
             }
+            m_Material.SetFloat(MaxSpeedID, m_Settings.maxSpeed);
             Graphics.DrawMeshInstancedIndirect(mesh, 0, m_Material, m_Bounds, m_ArgsBuffer);
         }
 

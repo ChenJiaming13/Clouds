@@ -2,6 +2,7 @@
 #pragma kernel kernel_apply_force
 #pragma kernel kernel_update_position
 
+// ----------------------------------------------------------------------------
 RWStructuredBuffer<float2> u_positions;
 RWStructuredBuffer<float2> u_velocities;
 RWStructuredBuffer<float> u_densities;
@@ -16,29 +17,7 @@ float u_target_density;
 float u_pressure_multiplier;
 
 static const int s_num_threads = 64;
-
-void handle_collisions(const uint v_particle_idx)
-{
-    float2 position = u_positions[v_particle_idx];
-    float2 velocity = u_velocities[v_particle_idx];
-
-    const float2 half_size = u_bounds_size * 0.5;
-    float2 edge_distance = half_size - abs(position);
-
-    if (edge_distance.x <= 0)
-    {
-        position.x = half_size.x * sign(position.x);
-        velocity.x *= -1 * u_collision_damping;
-    }
-    if (edge_distance.y <= 0)
-    {
-        position.y = half_size.y * sign(position.y);
-        velocity.y *= -1 * u_collision_damping;
-    }
-
-    u_positions[v_particle_idx] = position;
-    u_velocities[v_particle_idx] = velocity;
-}
+// ----------------------------------------------------------------------------
 
 float calc_influence(const float v_radius, const float v_distance)
 {
@@ -66,7 +45,7 @@ float calc_density(const float2 v_sample_point)
 {
     float density = 0.0;
 
-    for (int i = 0; i < u_num_particles; ++i)
+    for (uint i = 0; i < u_num_particles; ++i)
     {
         const float mass = 1.0;
         const float dst = length(u_positions[i] - v_sample_point);
@@ -75,6 +54,29 @@ float calc_density(const float2 v_sample_point)
     }
 
     return density;
+}
+
+void handle_collisions(const uint v_particle_idx)
+{
+    float2 position = u_positions[v_particle_idx];
+    float2 velocity = u_velocities[v_particle_idx];
+
+    const float2 half_size = u_bounds_size * 0.5;
+    float2 edge_distance = half_size - abs(position);
+
+    if (edge_distance.x <= 0)
+    {
+        position.x = half_size.x * sign(position.x);
+        velocity.x *= -1 * u_collision_damping;
+    }
+    if (edge_distance.y <= 0)
+    {
+        position.y = half_size.y * sign(position.y);
+        velocity.y *= -1 * u_collision_damping;
+    }
+
+    u_positions[v_particle_idx] = position;
+    u_velocities[v_particle_idx] = velocity;
 }
 
 float convert_density_to_pressure(const float v_density)
@@ -89,7 +91,7 @@ float2 calc_pressure_force(const uint v_particle_index)
     float2 pressure_force = float2(0.0, 0.0);
     const float2 sample_point = u_positions[v_particle_index];
 
-    for (int i = 0; i < u_num_particles; ++i)
+    for (uint i = 0; i < u_num_particles; ++i)
     {
         if (i == v_particle_index) continue;
         const float mass = 1.0;
